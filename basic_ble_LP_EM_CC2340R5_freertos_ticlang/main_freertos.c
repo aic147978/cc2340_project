@@ -84,6 +84,12 @@ icall_userCfg_t user0Cfg = BLE_USER_CFG;
 /*******************************************************************************
  * LOCAL VARIABLES
  */
+/*
+ * 用户可调参数：控制是否在启动阶段将 ICall 计时配置同步到 BLE 用户配置。
+ * 设计意图：有些项目会在 Bootloader 或早期初始化中提前写入 user0Cfg，
+ * 如果需要保留外部值，可将该宏设置为 0，避免在 main() 中再次覆盖。
+ */
+#define APP_SYNC_ICALL_TIMER_TO_USERCFG    (1U)
 
 /*******************************************************************************
  * GLOBAL VARIABLES
@@ -110,17 +116,40 @@ extern void AssertHandler(uint8 assertCause, uint8 assertSubcause);
  *
  * @return      None.
  */
+/**
+ * @brief 主入口函数（关键函数）
+ *
+ * 设计意图：按“断言回调注册 -> 板级初始化 -> BLE 计时配置同步 -> 应用任务创建 -> 调度器启动”
+ * 的顺序完成系统上电启动，确保 BLE 协议栈与 FreeRTOS 的时间基准一致。
+ *
+ * 需要根据硬件修改：Board_init() 依赖具体开发板和外设电源树配置，
+ * 如迁移到自定义硬件，请在对应 Board 文件中核对时钟、GPIO、射频供电配置。
+ *
+ * BLE协议字段数据格式说明：
+ * 1) user0Cfg.appServiceInfo->timerTickPeriod：无符号整数（tick/单位时间），
+ *    表示 ICall 系统 tick 周期，供 BLE 协议定时器换算使用。
+ * 2) user0Cfg.appServiceInfo->timerMaxMillisecond：无符号整数（毫秒），
+ *    表示 ICall 支持的最大定时毫秒值，供 BLE 协议超时参数边界检查。
+ *
+ * @return 始终返回 0；正常情况下流程不会执行到 return，因为调度器会接管 CPU。
+ */
 int main()
 {
   /* Register Application callback to trap asserts raised in the Stack */
   halAssertCback = AssertHandler;
   RegisterAssertCback(AssertHandler);
 
+  /*
+   * 需要根据硬件修改：板级初始化会打开特定硬件外设与底层驱动，
+   * 在不同 PCB 或电源域设计下应复核该初始化流程是否匹配。
+   */
   Board_init();
 
+#if (APP_SYNC_ICALL_TIMER_TO_USERCFG == 1U)
   /* Update User Configuration of the stack */
   user0Cfg.appServiceInfo->timerTickPeriod = ICall_getTickPeriod();
   user0Cfg.appServiceInfo->timerMaxMillisecond  = ICall_getMaxMSecs();
+#endif
 
   /* Initialize all applications tasks */
   appMain();
@@ -141,9 +170,23 @@ int main()
 //! \return none
 //!
 //*****************************************************************************
+/**
+ * @brief FreeRTOS 栈溢出钩子（关键函数）
+ *
+ * 设计意图：统一把任务栈溢出故障映射为 BLE/系统通用断言，
+ * 复用 AssertHandler 的故障收敛策略，避免出现多套错误处理逻辑。
+ *
+ * @param pxTask 触发栈溢出的任务句柄（当前版本未使用，保留用于后续日志扩展）。
+ * @param pcTaskName 触发栈溢出的任务名称（当前版本未使用，保留用于后续日志扩展）。
+ */
 void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName)
 {
-    //Handle FreeRTOS Stack Overflow
+    /*
+     * 设计意图：在资源紧张场景下，优先进入断言路径防止系统继续运行造成状态破坏。
+     * 这里保留参数但不直接打印，避免在异常上下文中引入额外堆栈/串口依赖。
+     */
+    (void)pxTask;
+    (void)pcTaskName;
     AssertHandler(HAL_ASSERT_CAUSE_STACK_OVERFLOW_ERROR, 0);
 }
 
@@ -183,29 +226,42 @@ void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName)
  *
  * @return      None.
  */
+/**
+ * @brief 统一断言处理函数（关键函数）
+ *
+ * 设计意图：将 BLE 协议栈、ICall、RTOS 的异常统一收敛到一个入口，
+ * 便于后续按产品需求扩展为“记录日志/复位系统/上报故障码”等策略。
+ * 当前实现采用 HAL_ASSERT_SPINLOCK 进行故障锁定，以确保问题可被调试器稳定捕获。
+ *
+ * @param assertCause 断言主因（uint8_t，枚举值，数据格式为 8 位无符号整型故障码）。
+ * @param assertSubcause 断言子因（uint8_t，枚举值，数据格式为 8 位无符号整型补充码）。
+ */
 void AssertHandler(uint8_t assertCause, uint8_t assertSubcause)
 {
-    // check the assert cause
+    /*
+     * 设计意图：优先按主因分类，再在必要时解析子因，
+     * 保持分支结构清晰，方便维护不同错误来源的处理策略。
+     */
     switch(assertCause)
     {
         case HAL_ASSERT_CAUSE_OUT_OF_MEMORY:
         {
-            // ERROR: OUT OF MEMORY
+            /* 内存耗尽代表系统已无法保证后续行为可预测，因此立即锁定现场。 */
             HAL_ASSERT_SPINLOCK;
             break;
         }
 
         case HAL_ASSERT_CAUSE_INTERNAL_ERROR:
         {
-            // check the subcause
+            /* 先判断内部错误的细分原因，为后续扩展差异化恢复策略预留位置。 */
             if(assertSubcause == HAL_ASSERT_SUBCAUSE_FW_INERNAL_ERROR)
             {
-                // ERROR: INTERNAL FW ERROR
+                /* 固件内部一致性错误，通常需要停机排查版本与配置匹配性。 */
                 HAL_ASSERT_SPINLOCK;
             }
             else
             {
-                // ERROR: INTERNAL ERROR
+                /* 其他内部错误同样先锁定，避免带病运行引发二次故障。 */
                 HAL_ASSERT_SPINLOCK;
             }
             break;
@@ -239,6 +295,8 @@ void AssertHandler(uint8_t assertCause, uint8_t assertSubcause)
         {
             /*
              * Device must be reset to recover from this case.
+             * 需要根据硬件修改：若产品有外部看门狗/PMIC 复位链路，
+             * 请在此处补充对应硬件复位时序，确保射频与电源域被完整重置。
              *
              * The HAL_ASSERT_SPINLOCK with is replacable with custom handling,
              * at the end of which Power_reset(); MUST be called.
