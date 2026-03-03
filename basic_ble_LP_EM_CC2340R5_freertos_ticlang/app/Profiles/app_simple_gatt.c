@@ -48,6 +48,10 @@ Target Device: cc23xx
 //! Includes
 //*****************************************************************************
 #include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <FreeRTOS.h>
+#include <timers.h>
 #include "ti/ble/app_util/framework/bleapputil_api.h"
 #include <ti/ble/profiles/simple_gatt/simple_gatt_profile.h>
 #include "ti/ble/app_util/menu/menu_module.h"
@@ -56,13 +60,32 @@ Target Device: cc23xx
 //*****************************************************************************
 //! Defines
 //*****************************************************************************
+#define SIMPLE_GATT_NOTIFY_DEFAULT_PERIOD_MS      (200U)
+#define SIMPLE_GATT_NOTIFY_PERIOD_MIN_MS          (50U)
+#define SIMPLE_GATT_NOTIFY_PERIOD_MAX_MS          (2000U)
+#define SIMPLE_GATT_NOTIFY_PERIOD_UNIT_MS         (10U)
+
+#define SIMPLE_GATT_CMD_TARE                      (0x01U)
+#define SIMPLE_GATT_CMD_ZERO                      (0x02U)
+#define SIMPLE_GATT_CMD_SET_PERIOD                (0x10U)
+
+#define SIMPLE_GATT_WEIGHT_STEP_G                 (5)
 
 //*****************************************************************************
 //! Globals
 //*****************************************************************************
 
 static void SimpleGatt_changeCB( uint8_t paramId );
-void SimpleGatt_notifyChar4();
+static void SimpleGatt_notifyChar4(void);
+static void SimpleGatt_weightNotifyTimerCB(TimerHandle_t xTimer);
+static void SimpleGatt_processWriteCmd(const uint8_t *cmdBuf, uint8_t cmdLen);
+static void SimpleGatt_setNotifyPeriodMs(uint16_t periodMs);
+
+static TimerHandle_t simpleGatt_weightNotifyTimer = NULL;
+static int32_t simpleGatt_weightG = 0;
+static int32_t simpleGatt_tareOffsetG = 0;
+static uint16_t simpleGatt_notifyPeriodMs = SIMPLE_GATT_NOTIFY_DEFAULT_PERIOD_MS;
+static bool simpleGatt_waitingPeriodValue = false;
 
 // Simple GATT Profile Callbacks
 static SimpleGattProfile_CBs_t simpleGatt_profileCBs =
@@ -103,14 +126,19 @@ static void SimpleGatt_changeCB( uint8_t paramId )
 
     case SIMPLEGATTPROFILE_CHAR3:
       {
-        SimpleGattProfile_getParameter(SIMPLEGATTPROFILE_CHAR3, &newValue);
+        uint8_t cmdBuf[2] = {0};
 
-        // Print the new value of char 3
-        MenuModule_printf(APP_MENU_PROFILE_STATUS_LINE, 0, "Profile status: Simple profile - "
-                          "Char 3 value = " MENU_MODULE_COLOR_YELLOW "%d " MENU_MODULE_COLOR_RESET,
-                          newValue);
+        if(SimpleGattProfile_getParameter(SIMPLEGATTPROFILE_CHAR3, cmdBuf) == SUCCESS)
+        {
+          newValue = cmdBuf[0];
 
-        SimpleGatt_notifyChar4();
+          // Print the new value of char 3
+          MenuModule_printf(APP_MENU_PROFILE_STATUS_LINE, 0, "Profile status: Simple profile - "
+                            "Char 3 cmd = " MENU_MODULE_COLOR_YELLOW "0x%02X " MENU_MODULE_COLOR_RESET,
+                            newValue);
+
+          SimpleGatt_processWriteCmd(cmdBuf, sizeof(cmdBuf));
+        }
       }
       break;
     case SIMPLEGATTPROFILE_CHAR4:
@@ -173,6 +201,27 @@ bStatus_t SimpleGatt_start( void )
   // Register callback with SimpleGATTprofile
   status = SimpleGattProfile_registerAppCBs( &simpleGatt_profileCBs );
 
+  if((status == SUCCESS) && (simpleGatt_weightNotifyTimer == NULL))
+  {
+    simpleGatt_weightNotifyTimer = xTimerCreate("SgWtNtf",
+                                                pdMS_TO_TICKS(simpleGatt_notifyPeriodMs),
+                                                pdTRUE,
+                                                NULL,
+                                                SimpleGatt_weightNotifyTimerCB);
+
+    if(simpleGatt_weightNotifyTimer != NULL)
+    {
+      if(xTimerStart(simpleGatt_weightNotifyTimer, 0) != pdPASS)
+      {
+        status = FAILURE;
+      }
+    }
+    else
+    {
+      status = FAILURE;
+    }
+  }
+
   // Return status value
   return(status);
 }
@@ -186,16 +235,106 @@ bStatus_t SimpleGatt_start( void )
  *
  * @return  void
  */
-void SimpleGatt_notifyChar4()
+static void SimpleGatt_notifyChar4(void)
 {
-  uint8_t value;
-  if (SimpleGattProfile_getParameter(SIMPLEGATTPROFILE_CHAR3, &value) == SUCCESS)
+  int32_t reportedWeightG = simpleGatt_weightG - simpleGatt_tareOffsetG;
+  uint8_t payload[sizeof(int32_t)] = {0};
+
+  payload[0] = (uint8_t)(reportedWeightG & 0xFF);
+  payload[1] = (uint8_t)((reportedWeightG >> 8) & 0xFF);
+  payload[2] = (uint8_t)((reportedWeightG >> 16) & 0xFF);
+  payload[3] = (uint8_t)((reportedWeightG >> 24) & 0xFF);
+
+  // Only attempt notification while connected.
+  if(linkDB_NumActive() > 0)
+  {
+    // Char 4 value update triggers notify when CCCD is enabled.
+    (void)SimpleGattProfile_setParameter(SIMPLEGATTPROFILE_CHAR4, sizeof(payload), payload);
+  }
+}
+
+static void SimpleGatt_weightNotifyTimerCB(TimerHandle_t xTimer)
+{
+  (void)xTimer;
+
+  if(linkDB_NumActive() == 0)
+  {
+    return;
+  }
+
+  simpleGatt_weightG += SIMPLE_GATT_WEIGHT_STEP_G;
+  if(simpleGatt_weightG > 200000)
+  {
+    simpleGatt_weightG = 0;
+  }
+
+  SimpleGatt_notifyChar4();
+}
+
+static void SimpleGatt_setNotifyPeriodMs(uint16_t periodMs)
+{
+  if(simpleGatt_weightNotifyTimer != NULL)
+  {
+    simpleGatt_notifyPeriodMs = periodMs;
+    (void)xTimerChangePeriod(simpleGatt_weightNotifyTimer,
+                             pdMS_TO_TICKS(simpleGatt_notifyPeriodMs),
+                             0);
+  }
+}
+
+static void SimpleGatt_processWriteCmd(const uint8_t *cmdBuf, uint8_t cmdLen)
+{
+  uint8_t cmd;
+
+  if((cmdLen == 0U) || (cmdBuf == NULL))
+  {
+    return;
+  }
+
+  cmd = cmdBuf[0];
+
+  if(simpleGatt_waitingPeriodValue)
+  {
+    uint16_t periodMs = (uint16_t)cmd * SIMPLE_GATT_NOTIFY_PERIOD_UNIT_MS;
+    simpleGatt_waitingPeriodValue = false;
+
+    if((periodMs >= SIMPLE_GATT_NOTIFY_PERIOD_MIN_MS) &&
+       (periodMs <= SIMPLE_GATT_NOTIFY_PERIOD_MAX_MS))
     {
-      // Call to set that value of the fourth characteristic in the profile.
-      // Note that if notifications of the fourth characteristic have been
-      // enabled by a GATT client device, then a notification will be sent
-      // every time there is a change in Char 3 or Char 4.
-      SimpleGattProfile_setParameter(SIMPLEGATTPROFILE_CHAR4, sizeof(uint8_t),
-                                 &value);
+      SimpleGatt_setNotifyPeriodMs(periodMs);
     }
+    return;
+  }
+
+  switch(cmd)
+  {
+    case SIMPLE_GATT_CMD_TARE:
+      simpleGatt_tareOffsetG = simpleGatt_weightG;
+      break;
+
+    case SIMPLE_GATT_CMD_ZERO:
+      simpleGatt_weightG = 0;
+      simpleGatt_tareOffsetG = 0;
+      break;
+
+    case SIMPLE_GATT_CMD_SET_PERIOD:
+      if(cmdLen >= 2U)
+      {
+        uint16_t periodMs = (uint16_t)cmdBuf[1] * SIMPLE_GATT_NOTIFY_PERIOD_UNIT_MS;
+        if((periodMs >= SIMPLE_GATT_NOTIFY_PERIOD_MIN_MS) &&
+           (periodMs <= SIMPLE_GATT_NOTIFY_PERIOD_MAX_MS))
+        {
+          SimpleGatt_setNotifyPeriodMs(periodMs);
+        }
+      }
+      else
+      {
+        simpleGatt_waitingPeriodValue = true;
+      }
+      break;
+
+    default:
+      // Unknown command. Ignore safely.
+      break;
+  }
 }
