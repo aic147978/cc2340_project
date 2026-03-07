@@ -62,6 +62,7 @@
 "./common/lib_opt/ctrl_opt_scanner.o"
 "./common/lib_opt/ctrl_opt_vendor_specific_cmd.o"
 "./common/lib_opt/host_opt_gap_bond_mgr.o"
+"./drivers/hx711.o"
 "../cc2340_freertos.cmd"
 -lti_utils_build_linker.cmd.genlibs
 -llibc.a

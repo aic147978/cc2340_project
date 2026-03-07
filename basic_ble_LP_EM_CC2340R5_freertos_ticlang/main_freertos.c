@@ -65,6 +65,10 @@
 #ifndef USE_DEFAULT_USER_CFG
 #include "ti/ble/app_util/config/ble_user_config.h"
 // BLE user defined configuration
+
+#include "drivers/hx711.h"
+#include <ti/display/Display.h>
+#include "ti_drivers_config.h"
 icall_userCfg_t user0Cfg = BLE_USER_CFG;
 #endif // USE_DEFAULT_USER_CFG
 
@@ -84,7 +88,9 @@ icall_userCfg_t user0Cfg = BLE_USER_CFG;
 /*******************************************************************************
  * LOCAL VARIABLES
  */
-
+static Display_Handle gDisplayHandle = NULL;
+static HX711_Handle_t gHx711;
+static TaskHandle_t hx711TaskHandle = NULL;
 /*******************************************************************************
  * GLOBAL VARIABLES
  */
@@ -92,6 +98,7 @@ icall_userCfg_t user0Cfg = BLE_USER_CFG;
 /*******************************************************************************
  * EXTERNS
  */
+ static void HX711Task(void *pvParameters);
 extern void appMain(void);
 extern void AssertHandler(uint8 assertCause, uint8 assertSubcause);
 
@@ -121,15 +128,67 @@ int main()
   /* Update User Configuration of the stack */
   user0Cfg.appServiceInfo->timerTickPeriod = ICall_getTickPeriod();
   user0Cfg.appServiceInfo->timerMaxMillisecond  = ICall_getMaxMSecs();
-
+ Display_printf(gDisplayHandle, 0, 0, "boardboard start");
   /* Initialize all applications tasks */
   appMain();
-
+  xTaskCreate(HX711Task,
+              "HX711Task",
+              1024,
+              NULL,
+              1,
+              &hx711TaskHandle);
   /* Start the FreeRTOS scheduler */
   vTaskStartScheduler();
 
   return 0;
 
+}
+
+static void HX711Task(void *pvParameters)
+{
+    int32_t raw;
+
+    (void)pvParameters;
+
+    /* 初始化 Display */
+    Display_init();
+    gDisplayHandle = Display_open(CONFIG_Display_0, NULL);
+
+    if (gDisplayHandle == NULL)
+    {
+        while (1)
+        {
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+    }
+
+    Display_printf(gDisplayHandle, 0, 0, "HX711 task start");
+
+    /* 初始化 HX711 */
+    HX711_init(&gHx711);
+
+    /* 等待 HX711 就绪 */
+    if (!HX711_waitReady(1000000))
+    {
+        Display_printf(gDisplayHandle, 0, 0, "HX711 not ready");
+        while (1)
+        {
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+    }
+
+    Display_printf(gDisplayHandle, 0, 0, "HX711 ready");
+
+    while (1)
+    {
+        /* 先只读原始值，不做重量计算 */
+        raw = HX711_readAverage(5);
+
+        Display_printf(gDisplayHandle, 0, 0, "raw = %ld", raw);
+
+        /* 500ms 打印一次 */
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
 }
 
 //*****************************************************************************

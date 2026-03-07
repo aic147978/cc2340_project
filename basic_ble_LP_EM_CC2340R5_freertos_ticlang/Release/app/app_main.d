@@ -101,7 +101,7 @@ app/app_main.o: ../app/app_main.c \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/stack_util/icall/app/icall_api_idx.h \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/display/Display.h \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/app_util/menu/menu_module.h \
- C:/Users/13944/workspace_ccstheia/basic_ble_LP_EM_CC2340R5_freertos_ticlang/app/app_main.h
+ D:/cc2340_project/basic_ble_LP_EM_CC2340R5_freertos_ticlang/app/app_main.h
 syscfg/ti_ble_config.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/stack_util/bcomdef.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/stack_util/comdef.h:
@@ -202,4 +202,4 @@ D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/stack_util/connection_
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/stack_util/icall/app/icall_api_idx.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/display/Display.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/app_util/menu/menu_module.h:
-C:/Users/13944/workspace_ccstheia/basic_ble_LP_EM_CC2340R5_freertos_ticlang/app/app_main.h:
+D:/cc2340_project/basic_ble_LP_EM_CC2340R5_freertos_ticlang/app/app_main.h:

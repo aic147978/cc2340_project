@@ -64,7 +64,7 @@ syscfg/ti_ble_config.o: syscfg/ti_ble_config.c \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/controller/ll/ll_privacy.h \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/controller/ll/ll_dfl.h \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/controller/ll/ll_dfl_internal.h \
- C:/Users/13944/workspace_ccstheia/basic_ble_LP_EM_CC2340R5_freertos_ticlang/app/app_main.h \
+ D:/cc2340_project/basic_ble_LP_EM_CC2340R5_freertos_ticlang/app/app_main.h \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/app_util/framework/bleapputil_api.h \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/stack_util/icall/app/icall_ble_api.h \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/stack_util/icall/app/icall_ble_apimsg.h \
@@ -164,7 +164,7 @@ D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/controller/ll/ll_pawr_
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/controller/ll/ll_privacy.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/controller/ll/ll_dfl.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/controller/ll/ll_dfl_internal.h:
-C:/Users/13944/workspace_ccstheia/basic_ble_LP_EM_CC2340R5_freertos_ticlang/app/app_main.h:
+D:/cc2340_project/basic_ble_LP_EM_CC2340R5_freertos_ticlang/app/app_main.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/app_util/framework/bleapputil_api.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/stack_util/icall/app/icall_ble_api.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/stack_util/icall/app/icall_ble_apimsg.h:

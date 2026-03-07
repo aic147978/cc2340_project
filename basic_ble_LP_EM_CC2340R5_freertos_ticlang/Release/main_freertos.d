@@ -108,7 +108,9 @@ main_freertos.o: ../main_freertos.c \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/host/cs/cs.h \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/host/connection_monitor/connection_monitor.h \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/stack_util/connection_monitor_types.h \
- syscfg/ti_drivers_config.h
+ syscfg/ti_drivers_config.h \
+ ../drivers/hx711.h \
+ D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/display/Display.h
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/third_party/freertos/include/FreeRTOS.h:
 syscfg/FreeRTOSConfig.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/posix/freertos/PTLS.h:
@@ -217,3 +219,5 @@ D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/host/cs/cs.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/host/connection_monitor/connection_monitor.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/ble/stack_util/connection_monitor_types.h:
 syscfg/ti_drivers_config.h:
+../drivers/hx711.h:
+D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/display/Display.h:

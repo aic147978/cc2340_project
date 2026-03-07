@@ -81,19 +81,11 @@ extern const uint_least8_t              CONFIG_ECDH0_CONST;
 /*
  *  ======== GPIO ========
  */
-extern const uint_least8_t CONFIG_GPIO_LED_GREEN_CONST;
-#define CONFIG_GPIO_LED_GREEN 15
+extern const uint_least8_t CONFIG_GPIO_HX711_SCK_CONST;
+#define CONFIG_GPIO_HX711_SCK 8
 
-extern const uint_least8_t CONFIG_GPIO_LED_RED_CONST;
-#define CONFIG_GPIO_LED_RED 14
-
-/* Owned by CONFIG_BUTTON_0 as  */
-extern const uint_least8_t CONFIG_GPIO_BUTTON_0_INPUT_CONST;
-#define CONFIG_GPIO_BUTTON_0_INPUT 10
-
-/* Owned by CONFIG_BUTTON_1 as  */
-extern const uint_least8_t CONFIG_GPIO_BUTTON_1_INPUT_CONST;
-#define CONFIG_GPIO_BUTTON_1_INPUT 9
+extern const uint_least8_t CONFIG_GPIO_HX711_DOUT_CONST;
+#define CONFIG_GPIO_HX711_DOUT 19
 
 /* Owned by CONFIG_DISPLAY_UART as  */
 extern const uint_least8_t CONFIG_PIN_UART_TX_CONST;
@@ -156,17 +148,6 @@ extern const uint_least8_t              CONFIG_RNG_0_CONST;
 extern const uint_least8_t                  CONFIG_DISPLAY_UART_CONST;
 #define CONFIG_DISPLAY_UART                 0
 #define CONFIG_TI_DRIVERS_UART2_COUNT       1
-
-
-/*
- *  ======== Button ========
- */
-
-extern const uint_least8_t                  CONFIG_BUTTON_0_CONST;
-#define CONFIG_BUTTON_0                     0
-extern const uint_least8_t                  CONFIG_BUTTON_1_CONST;
-#define CONFIG_BUTTON_1                     1
-#define CONFIG_TI_DRIVERS_BUTTON_COUNT      2
 
 
 /*

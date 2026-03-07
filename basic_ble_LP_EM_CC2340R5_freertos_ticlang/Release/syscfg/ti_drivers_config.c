@@ -211,20 +211,18 @@ GPIO_PinConfig gpioPinConfigs[26] = {
     GPIO_CFG_NO_DIR, /* DIO_5 */
     GPIO_CFG_NO_DIR, /* DIO_6 */
     GPIO_CFG_NO_DIR, /* DIO_7 */
-    GPIO_CFG_NO_DIR, /* DIO_8 */
-    /* Owned by CONFIG_BUTTON_1 as Button GPIO */
-    GPIO_CFG_INPUT_INTERNAL | GPIO_CFG_IN_INT_NONE | GPIO_CFG_PULL_UP_INTERNAL, /* CONFIG_GPIO_BUTTON_1_INPUT */
-    /* Owned by CONFIG_BUTTON_0 as Button GPIO */
-    GPIO_CFG_INPUT_INTERNAL | GPIO_CFG_IN_INT_NONE | GPIO_CFG_PULL_UP_INTERNAL, /* CONFIG_GPIO_BUTTON_0_INPUT */
+    GPIO_CFG_OUTPUT_INTERNAL | GPIO_CFG_OUT_STR_MED | GPIO_CFG_OUT_LOW, /* CONFIG_GPIO_HX711_SCK */
+    GPIO_CFG_NO_DIR, /* DIO_9 */
+    GPIO_CFG_NO_DIR, /* DIO_10 */
     GPIO_CFG_NO_DIR, /* DIO_11 */
     GPIO_CFG_NO_DIR, /* DIO_12 */
     GPIO_CFG_NO_DIR, /* DIO_13 */
-    GPIO_CFG_OUTPUT_INTERNAL | GPIO_CFG_OUT_STR_MED | GPIO_CFG_OUT_LOW, /* CONFIG_GPIO_LED_RED */
-    GPIO_CFG_OUTPUT_INTERNAL | GPIO_CFG_OUT_STR_MED | GPIO_CFG_OUT_LOW, /* CONFIG_GPIO_LED_GREEN */
+    GPIO_CFG_NO_DIR, /* DIO_14 */
+    GPIO_CFG_NO_DIR, /* DIO_15 */
     GPIO_CFG_DO_NOT_CONFIG, /* DIO_16 */
     GPIO_CFG_DO_NOT_CONFIG, /* DIO_17 */
     GPIO_CFG_NO_DIR, /* DIO_18 */
-    GPIO_CFG_NO_DIR, /* DIO_19 */
+    GPIO_CFG_INPUT_INTERNAL | GPIO_CFG_IN_INT_NONE | GPIO_CFG_PULL_NONE_INTERNAL, /* CONFIG_GPIO_HX711_DOUT */
     /* Owned by CONFIG_DISPLAY_UART as TX */
     GPIO_CFG_OUTPUT_INTERNAL | GPIO_CFG_OUT_STR_MED | GPIO_CFG_OUT_HIGH, /* CONFIG_PIN_UART_TX */
     GPIO_CFG_NO_DIR, /* DIO_21 */
@@ -250,10 +248,8 @@ GPIO_CallbackFxn gpioCallbackFunctions[26];
  */
 void* gpioUserArgs[26];
 
-const uint_least8_t CONFIG_GPIO_LED_GREEN_CONST = CONFIG_GPIO_LED_GREEN;
-const uint_least8_t CONFIG_GPIO_LED_RED_CONST = CONFIG_GPIO_LED_RED;
-const uint_least8_t CONFIG_GPIO_BUTTON_0_INPUT_CONST = CONFIG_GPIO_BUTTON_0_INPUT;
-const uint_least8_t CONFIG_GPIO_BUTTON_1_INPUT_CONST = CONFIG_GPIO_BUTTON_1_INPUT;
+const uint_least8_t CONFIG_GPIO_HX711_SCK_CONST = CONFIG_GPIO_HX711_SCK;
+const uint_least8_t CONFIG_GPIO_HX711_DOUT_CONST = CONFIG_GPIO_HX711_DOUT;
 const uint_least8_t CONFIG_PIN_UART_TX_CONST = CONFIG_PIN_UART_TX;
 const uint_least8_t CONFIG_GPIO_DISPLAY_UART_RX_CONST = CONFIG_GPIO_DISPLAY_UART_RX;
 
@@ -475,50 +471,6 @@ const UART2_Config UART2_config[CONFIG_UART2_COUNT] = {
 const uint_least8_t CONFIG_DISPLAY_UART_CONST = CONFIG_DISPLAY_UART;
 const uint_least8_t UART2_count = CONFIG_UART2_COUNT;
 
-
-/*
- *  =============================== Button ===============================
- */
-#include <ti/drivers/apps/Button.h>
-
-#define CONFIG_BUTTON_COUNT 2
-Button_Object ButtonObjects[CONFIG_BUTTON_COUNT];
-
-static const Button_HWAttrs ButtonHWAttrs[CONFIG_BUTTON_COUNT] = {
-    /* CONFIG_BUTTON_0 */
-    /* LaunchPad Button BTN-1 (Left) */
-    {
-        .gpioIndex = CONFIG_GPIO_BUTTON_0_INPUT,
-        .pullMode = Button_PULL_UP,
-        .internalPullEnabled = 1,
-    },
-    /* CONFIG_BUTTON_1 */
-    /* LaunchPad Button BTN-2 (Right) */
-    {
-        .gpioIndex = CONFIG_GPIO_BUTTON_1_INPUT,
-        .pullMode = Button_PULL_UP,
-        .internalPullEnabled = 1,
-    },
-};
-
-const Button_Config Button_config[CONFIG_BUTTON_COUNT] = {
-    /* CONFIG_BUTTON_0 */
-    /* LaunchPad Button BTN-1 (Left) */
-    {
-        .object = &ButtonObjects[CONFIG_BUTTON_0],
-        .hwAttrs = &ButtonHWAttrs[CONFIG_BUTTON_0]
-    },
-    /* CONFIG_BUTTON_1 */
-    /* LaunchPad Button BTN-2 (Right) */
-    {
-        .object = &ButtonObjects[CONFIG_BUTTON_1],
-        .hwAttrs = &ButtonHWAttrs[CONFIG_BUTTON_1]
-    },
-};
-
-const uint_least8_t CONFIG_BUTTON_0_CONST = CONFIG_BUTTON_0;
-const uint_least8_t CONFIG_BUTTON_1_CONST = CONFIG_BUTTON_1;
-const uint_least8_t Button_count = CONFIG_BUTTON_COUNT;
 
 /*
  *  =============================== BatMon Support ===============================

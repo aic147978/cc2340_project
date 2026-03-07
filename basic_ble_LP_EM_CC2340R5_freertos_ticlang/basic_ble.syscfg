@@ -24,17 +24,14 @@ const AESECB1     = AESECB.addInstance();
 const ECDH        = scripting.addModule("/ti/drivers/ECDH");
 const ECDH1       = ECDH.addInstance();
 const GPIO        = scripting.addModule("/ti/drivers/GPIO");
-const GPIO5       = GPIO.addInstance();
-const GPIO6       = GPIO.addInstance();
+const GPIO3       = GPIO.addInstance();
+const GPIO4       = GPIO.addInstance();
 const NVS         = scripting.addModule("/ti/drivers/NVS");
 const NVS1        = NVS.addInstance();
 const Power       = scripting.addModule("/ti/drivers/Power");
 const RCL         = scripting.addModule("/ti/drivers/RCL");
 const RNG         = scripting.addModule("/ti/drivers/RNG");
 const RNG1        = RNG.addInstance();
-const Button      = scripting.addModule("/ti/drivers/apps/Button", {}, false);
-const Button1     = Button.addInstance();
-const Button2     = Button.addInstance();
 const Settings    = scripting.addModule("/ti/posix/freertos/Settings");
 
 /**
@@ -63,13 +60,12 @@ ble.advSet1.scanRes1.GAP_ADTYPE_PERIPHERAL_CONN_INTERVAL_RANGE = true;
 
 CCFG.ccfgTemplate.$name = "ti_devices_CCFG_CCFGCC23X0Template0";
 
-Display1.$name                                 = "CONFIG_Display_0";
-Display1.$hardware                             = system.deviceData.board.components.XDS110UART;
-Display1.enableANSI                            = true;
-Display1.uartBufferSize                        = 128;
-Display1.uart.$name                            = "CONFIG_DISPLAY_UART";
-Display1.uart.txPinInstance.initialOutputState = "High";
-Display1.uart.txPinInstance.$name              = "CONFIG_PIN_UART_TX";
+Display1.$name                    = "CONFIG_Display_0";
+Display1.$hardware                = system.deviceData.board.components.XDS110UART;
+Display1.enableANSI               = true;
+Display1.uartBufferSize           = 128;
+Display1.uart.$name               = "CONFIG_DISPLAY_UART";
+Display1.uart.txPinInstance.$name = "CONFIG_PIN_UART_TX";
 
 AESCCM1.$name = "CONFIG_AESCCM0";
 
@@ -79,11 +75,10 @@ AESECB1.$name = "CONFIG_AESECB0";
 
 ECDH1.$name = "CONFIG_ECDH0";
 
-GPIO5.$hardware = system.deviceData.board.components.LED_GREEN;
-GPIO5.$name     = "CONFIG_GPIO_LED_GREEN";
+GPIO3.mode  = "Output";
+GPIO3.$name = "CONFIG_GPIO_HX711_SCK";
 
-GPIO6.$hardware = system.deviceData.board.components.LED_RED;
-GPIO6.$name     = "CONFIG_GPIO_LED_RED";
+GPIO4.$name = "CONFIG_GPIO_HX711_DOUT";
 
 NVS1.$name                    = "CONFIG_NVSINTERNAL";
 NVS1.internalFlash.$name      = "ti_drivers_nvs_NVSLPF30";
@@ -93,12 +88,6 @@ NVS1.internalFlash.regionSize = 0x3000;
 RNG.rngReturnBehavior = "RNG_RETURN_BEHAVIOR_BLOCKING";
 
 RNG1.$name = "CONFIG_RNG_0";
-
-Button1.$name     = "CONFIG_BUTTON_0";
-Button1.$hardware = system.deviceData.board.components["BTN-1"];
-
-Button2.$name     = "CONFIG_BUTTON_1";
-Button2.$hardware = system.deviceData.board.components["BTN-2"];
 
 /**
  * Pinmux solution for unlocked pins/peripherals. This ensures that minor changes to the automatic solver in a future
@@ -110,7 +99,5 @@ Display1.uart.uart.dmaTxChannel.$suggestSolution = "DMA_CH1";
 Display1.uart.uart.dmaRxChannel.$suggestSolution = "DMA_CH0";
 Display1.uart.uart.txPin.$suggestSolution        = "boosterpack.4";
 Display1.uart.uart.rxPin.$suggestSolution        = "boosterpack.3";
-GPIO5.gpioPin.$suggestSolution                   = "boosterpack.40";
-GPIO6.gpioPin.$suggestSolution                   = "boosterpack.39";
-Button1.button.$suggestSolution                  = "boosterpack.13";
-Button2.button.$suggestSolution                  = "boosterpack.12";
+GPIO3.gpioPin.$suggestSolution                   = "boosterpack.36";
+GPIO4.gpioPin.$suggestSolution                   = "boosterpack.17";

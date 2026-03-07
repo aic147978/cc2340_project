@@ -66,7 +66,6 @@ syscfg/ti_drivers_config.o: syscfg/ti_drivers_config.c \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/devices/cc23x0r5/inc/hw_ints.h \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/devices/cc23x0r5/driverlib/evtsvt.h \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/devices/cc23x0r5/inc/hw_evtsvt.h \
- D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/drivers/apps/Button.h \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/drivers/batterymonitor/BatMonSupportLPF3.h \
  D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/drivers/Board.h
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/devices/DeviceFamily.h:
@@ -134,6 +133,5 @@ D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/drivers/uart2/UART2LPF3.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/devices/cc23x0r5/inc/hw_ints.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/devices/cc23x0r5/driverlib/evtsvt.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/devices/cc23x0r5/inc/hw_evtsvt.h:
-D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/drivers/apps/Button.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/drivers/batterymonitor/BatMonSupportLPF3.h:
 D:/ti/simplelink_lowpower_f3_sdk_9_14_02_16/source/ti/drivers/Board.h:
